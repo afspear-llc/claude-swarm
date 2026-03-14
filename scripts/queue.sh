@@ -9,10 +9,12 @@
 #   update <id> <field> <value>            Update a single field on a task
 #   remove <id>                            Remove a task
 #   next-id                                Print the next available ID
+#   log <task-id> <type> <message>         Append an event to the swarm event log
 
 set -euo pipefail
 
 QUEUE="${HOME}/.claude/work-queue.json"
+EVENTS="${HOME}/.claude/swarm-events.jsonl"
 
 # Ensure queue file exists
 if [ ! -f "$QUEUE" ]; then
@@ -106,6 +108,15 @@ case "$cmd" in
     echo "✓ Removed #${id}: ${title}"
     ;;
 
+  log)
+    task_id="${1:?task-id required}"
+    event_type="${2:?type required (dispatched|output|completed|failed|info)}"
+    message="${3:?message required}"
+    ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+    printf '{"ts":"%s","task":"%s","type":"%s","msg":%s}\n' \
+      "$ts" "$task_id" "$event_type" "$(printf '%s' "$message" | jq -Rs .)" >> "$EVENTS"
+    ;;
+
   next-id)
     next_id
     echo
@@ -121,6 +132,7 @@ queue.sh <command> [args]
   update <id> <field> <value>                          Update a field (status, branch, error, etc.)
   remove <id>                                          Remove a task
   next-id                                              Print the next available ID
+  log <task-id> <type> <message>                       Append event (types: dispatched, output, completed, failed, info)
 USAGE
     ;;
 esac

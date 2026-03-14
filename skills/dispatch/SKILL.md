@@ -134,6 +134,11 @@ $QUEUE_SH update 001 branch fix/my-branch
 $QUEUE_SH update 001 error "Build failed"
 $QUEUE_SH remove 001
 $QUEUE_SH next-id
+$QUEUE_SH log 001 dispatched "Assigned to java-specialist"
+$QUEUE_SH log 001 output "Found root cause in AuthService.refreshToken()"
+$QUEUE_SH log 001 completed "Fixed cache TTL, added 3 tests, branch: fix/stale-cache"
+$QUEUE_SH log 001 failed "Build failed: missing dependency"
+$QUEUE_SH log 001 info "Agent requested clarification on API contract"
 ```
 
 ### Task Format
@@ -224,8 +229,9 @@ When dispatching a task:
 1. **Read `~/.claude/agents/`** to discover available specialists (if you haven't already this session)
 2. **Match the task to the best available agent(s)** using the selection principles above
 3. **Mark in-progress:** `$QUEUE_SH update <id> status in-progress`
-4. **Spawn the agent(s)** using the appropriate dispatch mode
-5. **Include full context** in the agent's instructions: task description, acceptance criteria, project path, relevant files
+4. **Log the dispatch:** `$QUEUE_SH log <id> dispatched "Assigned to <agent-name>"`
+5. **Spawn the agent(s)** using the appropriate dispatch mode
+6. **Include full context** in the agent's instructions: task description, acceptance criteria, project path, relevant files
 
 ### Agent Instructions Template
 
@@ -250,12 +256,28 @@ When a team spans multiple projects (e.g., backend API + frontend app):
 When an agent or team finishes:
 
 1. `$QUEUE_SH update <id> status done` and `$QUEUE_SH update <id> branch <branch-name>`
-2. **Report results to the user** with a brief summary of what was accomplished
+2. **Log the agent's output:** `$QUEUE_SH log <id> output "<summary of what the agent did and key findings>"` — capture the substance of the agent's work so it is visible in the dashboard
+3. **Log completion:** `$QUEUE_SH log <id> completed "<brief result summary>"`
+4. **Report results to the user** with a brief summary of what was accomplished
 
 When an agent fails:
 
 1. `$QUEUE_SH update <id> status failed` and `$QUEUE_SH update <id> error "explanation"`
-2. **Report the failure to the user** and discuss next steps
+2. **Log the failure:** `$QUEUE_SH log <id> failed "<what went wrong>"`
+3. **Report the failure to the user** and discuss next steps
+
+### Logging Agent Output
+
+Whenever you receive output from a background agent, log it to the event stream so it is visible on the dashboard. Use multiple `log` calls to capture distinct pieces of information:
+
+```bash
+$QUEUE_SH log <id> output "Investigating files: src/auth/token.ts, src/auth/refresh.ts"
+$QUEUE_SH log <id> output "Root cause: refresh interval (24h) exceeds token TTL (1h)"
+$QUEUE_SH log <id> output "Fix applied: reduced refresh interval to 45min, added retry logic"
+$QUEUE_SH log <id> output "Tests: 3 new unit tests added, all passing"
+```
+
+Log generously — the dashboard streams these events in real time. Each log entry should be a meaningful unit (a finding, a decision, a file changed, test results) rather than raw terminal output.
 
 ---
 
