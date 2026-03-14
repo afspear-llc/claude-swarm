@@ -74,13 +74,11 @@ The queue lives at `~/.claude/work-queue.json`. You can edit it directly or let 
   "team": [
     {
       "role": "backend",
-      "agent_type": "backend-architect",
       "project": "/home/user/code/my-api",
       "description": "Add GET /api/search?q=term. Return { results: [{ id, title, snippet, score }] }."
     },
     {
       "role": "frontend",
-      "agent_type": "frontend-developer",
       "project": "/home/user/code/my-web",
       "description": "Add SearchComponent with debounced input. Call GET /api/search?q=term. Display results as cards."
     }

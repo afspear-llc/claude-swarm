@@ -2,7 +2,7 @@
   "name": "claude-swarm",
   "version": "1.0.0",
   "description": "Smart multi-agent dispatcher with persistent work queue and dynamic team composition",
-  "author": { "name": "StrikeCoach" },
+  "author": { "name": "afspear" },
   "license": "MIT",
   "keywords": ["swarm", "agents", "teams", "dispatch", "work-queue"]
 }

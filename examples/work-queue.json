@@ -16,13 +16,11 @@
     "team": [
       {
         "role": "backend",
-        "agent_type": "backend-architect",
         "project": "/home/user/code/my-api",
         "description": "Add GET /api/profile and PUT /api/profile endpoints. Return/accept: { name: string, email: string, avatar_url: string, preferences: { theme: 'light' | 'dark', notifications: boolean } }. Add ProfileService with validation. Unit tests for service and controller."
       },
       {
         "role": "frontend",
-        "agent_type": "frontend-developer",
         "project": "/home/user/code/my-web",
         "description": "Add ProfileComponent at /profile route. Call GET /api/profile on load, PUT /api/profile on save. Form fields: name, email (readonly), avatar (upload), theme (toggle), notifications (toggle). API contract: { name: string, email: string, avatar_url: string, preferences: { theme: 'light' | 'dark', notifications: boolean } }."
       }
@@ -35,7 +33,6 @@
     "title": "Security audit on auth module",
     "description": "Review auth middleware for OWASP top 10 vulnerabilities. Check token validation, session handling, CSRF protection, input sanitization. Report findings with severity ratings.",
     "dispatch": "agent",
-    "agent_type": "security-auditor",
     "project": "/home/user/code/my-app",
     "status": "done",
     "priority": 1,

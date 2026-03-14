@@ -1,0 +1,15 @@
+{
+  "name": "claude-swarm",
+  "description": "Smart multi-agent dispatcher with persistent work queue and dynamic team composition",
+  "owner": {
+    "name": "afspear"
+  },
+  "plugins": [
+    {
+      "name": "claude-swarm",
+      "description": "Smart multi-agent dispatcher with persistent work queue and dynamic team composition",
+      "version": "1.0.0",
+      "source": "./"
+    }
+  ]
+}

@@ -137,13 +137,11 @@ The work queue lives at `~/.claude/work-queue.json`. It is a JSON array of task 
   "team": [
     {
       "role": "backend",
-      "agent_type": "backend-architect",
       "project": "/absolute/path/to/backend",
       "description": "Role-specific instructions for this agent."
     },
     {
       "role": "frontend",
-      "agent_type": "frontend-developer",
       "project": "/absolute/path/to/frontend",
       "description": "Role-specific instructions. Include the API contract from the backend."
     }
@@ -161,7 +159,7 @@ The work queue lives at `~/.claude/work-queue.json`. It is a JSON array of task 
 | `title` | Yes | Short human-readable summary |
 | `description` | Yes | Detailed instructions and acceptance criteria |
 | `dispatch` | No | `"agent"`, `"team"`, or `"auto"` (default: `"auto"`) |
-| `agent_type` | No | Type hint for agent dispatch (e.g., "debugger", "java-pro") |
+| `agent_type` | No | Legacy field. If present, used as a hint. Dispatcher picks the best agent regardless. |
 | `project` | Yes* | Absolute path to the project root. *For teams, set on each member instead. |
 | `team` | Yes* | Array of team members. *Required when dispatch is "team". |
 | `status` | Yes | `"ready"`, `"in-progress"`, `"done"`, or `"failed"` |
@@ -174,7 +172,6 @@ The work queue lives at `~/.claude/work-queue.json`. It is a JSON array of task 
 | Field | Required | Description |
 |-------|----------|-------------|
 | `role` | Yes | Short label (e.g., "backend", "frontend", "tests") |
-| `agent_type` | No | Type hint for this agent |
 | `project` | Yes | Absolute path to the project this agent works in |
 | `description` | Yes | Role-specific instructions for this agent |
 
