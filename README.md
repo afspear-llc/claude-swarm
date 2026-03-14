@@ -45,6 +45,97 @@ Your work queue (`~/.claude/work-queue.json`) is never deleted by uninstall.
 
 The main session never does implementation work directly. It stays in dispatcher mode: discussing requirements, refining task descriptions, composing teams, and managing the queue.
 
+## Usage
+
+### Starting a session
+
+Open Claude Code in any project. The plugin's SessionStart hook automatically checks `~/.claude/work-queue.json` and dispatches any items with `"status": "ready"`. You don't need to do anything — just start working.
+
+```
+$ claude
+Claude: Found 2 ready items in work queue. Dispatching...
+  #007 → backend agent: "Add pagination to /api/posts"
+  #008 → debugger agent: "Fix 500 on empty cart checkout"
+```
+
+### Adding tasks conversationally
+
+Describe what you want done in plain language. The dispatcher writes it to the queue, picks the right agent(s), and launches them in background worktrees.
+
+```
+You: "The options chain endpoint is returning stale data — looks like
+      the cache TTL is too long. Can you fix it?"
+Claude: Dispatched #009 → debugger: "Fix stale options chain cache TTL"
+        Working in worktree on branch fix/stale-options-cache
+
+... (agent investigates, fixes, tests in background) ...
+
+Claude: #009 done — reduced cache TTL from 24h to 15min in
+        OptionsChainService.java, branch: fix/stale-options-cache
+```
+
+For cross-cutting work, the dispatcher composes a team automatically:
+
+```
+You: "Add a search feature — backend should index posts, frontend
+      should show results with a search bar"
+Claude: Dispatched #010 as team:
+  backend → java-specialist: "Add GET /api/search endpoint"
+  frontend → angular-specialist: "Add SearchComponent with results"
+```
+
+### Adding tasks manually
+
+Edit `~/.claude/work-queue.json` directly. Add an entry with `"status": "ready"` and it will be picked up on the next session start or when you ask the dispatcher to check the queue.
+
+```json
+{
+  "id": "011",
+  "title": "Add rate limiting to public endpoints",
+  "description": "Apply 60 req/min per IP to all /api/public/** endpoints. Return 429 with Retry-After header.",
+  "project": "/home/user/code/my-api",
+  "status": "ready",
+  "priority": 1
+}
+```
+
+### Checking status
+
+Ask the dispatcher what's happening. It reads the queue and reports back.
+
+```
+You: "What's the status of everything?"
+Claude: Work queue status:
+  #007 in-progress — "Add pagination to /api/posts" (backend agent working)
+  #008 done — "Fix 500 on empty cart checkout" → branch: fix/empty-cart-500
+  #009 done — "Fix stale options chain cache TTL" → branch: fix/stale-options-cache
+  #010 in-progress — "Add search feature" (team: backend done, frontend working)
+  #011 ready — "Add rate limiting to public endpoints" (queued, not yet dispatched)
+```
+
+### Reviewing results
+
+When agents finish, they report back with what they changed and which branch holds the work. You can review diffs, run tests, or ask follow-up questions.
+
+```
+You: "Show me what #008 changed"
+Claude: Branch fix/empty-cart-500 has 1 commit:
+  - CartController.java: added null check for empty cart items
+  - CartControllerTest.java: added test for empty cart edge case
+  All 47 tests passing.
+```
+
+### Merging work
+
+Ask the dispatcher to merge completed branches. It handles the git operations.
+
+```
+You: "Merge #008 and #009 to main"
+Claude: Merged fix/empty-cart-500 into main (fast-forward)
+        Merged fix/stale-options-cache into main (clean merge)
+        Both branches cleaned up. Queue updated to reflect merge.
+```
+
 ## Work queue
 
 The queue lives at `~/.claude/work-queue.json`. You can edit it directly or let Claude manage it.
