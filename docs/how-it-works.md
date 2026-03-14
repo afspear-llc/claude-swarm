@@ -75,6 +75,7 @@ claude-swarm/
   scripts/
     check-queue.sh        Hook script: enables teams flag, detects ready items
     queue.sh              CLI for queue operations (add, update, remove, list)
+    webserver.py          Local dashboard server (real-time queue viewer)
   examples/
     work-queue.json       Example queue with sample tasks
   docs/
