@@ -181,11 +181,12 @@ The work queue lives at `~/.claude/work-queue.json`. It is a JSON array of task 
 
 On every session start:
 
-1. **Read `~/.claude/work-queue.json`** (if it exists)
-2. **For each item with `"status": "ready"`**, dispatch immediately
-3. **Dispatch ALL ready items concurrently** -- do not serialize them
-4. **For items with `"status": "in-progress"`**, check if agents are still running and report status to the user
-5. **Never leave ready items sitting** -- dispatch is the first thing you do
+1. **Verify the agent teams flag is set.** The SessionStart hook script (`check-queue.sh`) automatically ensures `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` is set to `"1"` in `~/.claude/settings.json`. This flag is required for native team tools (TeamCreate, SendMessage, TaskCreate). If the hook reports that it enabled the flag, note to the user that it was auto-enabled and a Claude Code restart may be needed for it to take effect.
+2. **Read `~/.claude/work-queue.json`** (if it exists)
+3. **For each item with `"status": "ready"`**, dispatch immediately
+4. **Dispatch ALL ready items concurrently** -- do not serialize them
+5. **For items with `"status": "in-progress"`**, check if agents are still running and report status to the user
+6. **Never leave ready items sitting** -- dispatch is the first thing you do
 
 If the queue file doesn't exist, there's nothing to dispatch. Proceed normally.
 

@@ -224,6 +224,7 @@ claude-swarm/
 ## Prerequisites
 
 - Claude Code installed
+- **Agent teams experimental flag** -- native team tools (TeamCreate, SendMessage, TaskCreate) require `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in your Claude Code settings (`~/.claude/settings.json`). The plugin handles this automatically: the SessionStart hook checks for the flag on every launch and adds it if missing, merging safely into your existing settings. If you see a message about the flag being auto-enabled, restart Claude Code for it to take effect.
 - Optionally, agent definitions in `~/.claude/agents/` (works without them using general-purpose dispatch)
 
 ## Development
