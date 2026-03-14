@@ -6,7 +6,7 @@ claude-swarm transforms your Claude Code session into a project manager that rea
 
 ## What it does
 
-- **Smart team composition** -- scans `~/.claude/agents/` to discover your installed specialists, then picks the right agents for each task like a hiring manager staffing a project
+- **Smart team composition** -- scans `~/.claude/agents/` to discover your installed specialists, then picks the best agents for each task based on their capabilities
 - **Persistent work queue** -- a JSON file (`~/.claude/work-queue.json`) tracks tasks across sessions, solving the problem that native Claude Code teams are session-scoped
 - **Hybrid dispatch** -- uses native TeamCreate/SendMessage/TaskCreate when agents need to coordinate, plain Agent calls when they don't
 - **Auto-dispatch on session start** -- a SessionStart hook checks the queue and dispatches ready items automatically
@@ -103,11 +103,11 @@ Set `"dispatch": "auto"` (or omit the field) and the dispatcher decides whether 
 
 ## How it composes teams
 
-The dispatcher takes a "hiring manager" approach:
+The dispatcher selects agents by matching capabilities to tasks:
 
-1. **Reads your roster** -- scans `~/.claude/agents/` and reads each agent's `.md` file to understand its name, description, model tier, and specialties
+1. **Scans available agents** -- reads `~/.claude/agents/` and each agent's `.md` file to understand its name, description, model tier, and specialties
 2. **Matches to the task** -- if you have a `java-specialist` agent and the task is a Spring Boot bug, it picks that agent
-3. **Picks the smallest effective team** -- doesn't over-hire; a focused bug fix gets one agent, not three
+3. **Picks the smallest effective team** -- doesn't over-assign; a focused bug fix gets one agent, not three
 4. **Considers cost** -- uses expensive Opus agents for critical work, cheaper Haiku/Sonnet agents for routine tasks
 5. **Falls back gracefully** -- if no specialist fits, uses a general-purpose agent with role-specific prompts; if no agents are installed at all, dispatches with the default Agent tool
 
