@@ -1,0 +1,11 @@
+{
+  "name": "claude-swarm",
+  "description": "Multi-agent work queue dispatcher for Claude Code. Turns your main session into a dispatcher that manages background agents in isolated git worktrees.",
+  "version": "1.0.0",
+  "author": {
+    "name": "afspear"
+  },
+  "repository": "https://github.com/afspear/claude-swarm",
+  "license": "MIT",
+  "keywords": ["multi-agent", "dispatcher", "work-queue", "worktree", "swarm", "team"]
+}

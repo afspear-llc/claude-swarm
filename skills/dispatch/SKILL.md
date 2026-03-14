@@ -1,4 +1,9 @@
-# Claude Swarm — Multi-Agent Dispatcher
+---
+name: dispatch
+description: Multi-agent work queue dispatcher. Manages background agents in isolated git worktrees. Reads ~/.claude/work-queue.json, dispatches ready tasks as single agents or teams, tracks status lifecycle. Use when managing tasks, dispatching work, or checking queue status.
+---
+
+# Claude Swarm -- Multi-Agent Dispatcher
 
 On session start -- and whenever a new item is added -- read `~/.claude/work-queue.json`. For each item with `"status": "ready"`, immediately dispatch it (agent or team) in background worktrees and set its status to `"in-progress"`. When all agents for an item complete, set status to `"done"` and record the branch or PR URL. Always dispatch -- never leave ready items sitting. Dispatch ALL ready items concurrently.
 

@@ -1,39 +1,78 @@
 # Claude Swarm
 
-Turn Claude Code into a multi-agent dispatcher with team support.
+A Claude Code plugin that turns your main session into a multi-agent dispatcher with team support.
 
 - **Work queue**: a simple JSON file (`~/.claude/work-queue.json`) tracks all tasks
 - **Single-agent dispatch**: one task, one agent, one isolated git worktree
 - **Team dispatch**: multiple specialized agents work in parallel across codebases
 - **Dispatcher mode**: your main Claude session discusses and refines -- agents do the hands-on work
+- **Auto-check on session start**: a SessionStart hook reminds Claude to dispatch any ready items
 
 ## Install
 
-```bash
-git clone https://github.com/your-user/claude-swarm.git
-cd claude-swarm
-./install.sh
-```
+### From a marketplace
 
-This appends dispatcher instructions to `~/.claude/CLAUDE.md` (creates it if needed) and initializes an empty work queue. Safe to run multiple times.
-
-## Uninstall
+If claude-swarm is published to a marketplace you have configured:
 
 ```bash
-./uninstall.sh
+claude plugin install claude-swarm
 ```
 
-Removes the swarm config from `~/.claude/CLAUDE.md`. Your work queue is left intact.
+### From a local directory
+
+Clone the repo and point Claude Code at it:
+
+```bash
+git clone https://github.com/afspear/claude-swarm.git
+claude --plugin-dir ./claude-swarm
+```
+
+To load it automatically without `--plugin-dir`, you can add it to your user settings. Run Claude Code, then use the `/plugin` command to install from the local directory.
+
+### Uninstall
+
+```bash
+claude plugin uninstall claude-swarm
+```
+
+Or if installed at project scope:
+
+```bash
+claude plugin uninstall claude-swarm --scope project
+```
+
+Your work queue (`~/.claude/work-queue.json`) is never deleted by uninstall.
+
+## Plugin Structure
+
+```
+claude-swarm/
+├── .claude-plugin/
+│   └── plugin.json           # Plugin manifest (name, version, description)
+├── skills/
+│   └── dispatch/
+│       └── SKILL.md          # Dispatcher instructions (the core brain)
+├── hooks/
+│   └── hooks.json            # SessionStart hook to auto-check the queue
+├── scripts/
+│   └── check-queue.sh        # Hook script that detects ready items
+├── examples/
+│   └── work-queue.json       # Example work queue with sample tasks
+├── LICENSE
+└── README.md
+```
 
 ## Usage
 
-1. Start Claude Code in any project
+1. Start Claude Code (with the plugin loaded)
 2. Describe what you want built or fixed
 3. Claude adds the task to the work queue and dispatches an agent (or team)
 4. Agents work autonomously in isolated worktrees
 5. When done, Claude records the branch/PR and marks the task complete
 
 You can also edit `~/.claude/work-queue.json` directly -- Claude picks up `"ready"` items on session start.
+
+The dispatcher skill is also available as `/claude-swarm:dispatch` if you want to invoke it explicitly.
 
 ## Queue Format
 
@@ -113,12 +152,11 @@ These are hints for the agent's mindset, not hard categories. Claude adapts rega
 
 ## How It Works
 
-The install script appends instructions to `~/.claude/CLAUDE.md` -- the file Claude Code reads on every session start. These instructions tell Claude to:
+This is a native Claude Code plugin. It provides:
 
-1. Check the work queue for `"ready"` items
-2. Dispatch each one in an isolated git worktree (using Claude Code's built-in worktree agent support)
-3. Track status transitions: `ready` -> `in-progress` -> `done` | `failed`
-4. Record the resulting branch or PR URL
+1. **A skill** (`skills/dispatch/SKILL.md`) -- the full dispatcher instructions that teach Claude to manage the work queue, dispatch agents in worktrees, and track task status. Claude automatically uses this skill based on context.
+
+2. **A SessionStart hook** (`hooks/hooks.json`) -- runs `scripts/check-queue.sh` at the beginning of every session. If there are `"ready"` items in the queue, it reminds Claude to dispatch them immediately.
 
 The main session never does implementation work directly. It stays in dispatcher mode: discussing requirements, refining task descriptions, and managing the queue.
 
@@ -128,6 +166,16 @@ The main session never does implementation work directly. It stays in dispatcher
 - **Define contracts**: for team tasks, put the shared API schema in each agent's description so they can work independently
 - **One concern per agent**: don't overload agents with unrelated work
 - **Trust the agents**: give them the goal and constraints, let them figure out the implementation
+
+## Development
+
+To test changes locally:
+
+```bash
+claude --plugin-dir ./claude-swarm
+```
+
+Run `/reload-plugins` inside Claude Code to pick up changes without restarting.
 
 ## License
 
