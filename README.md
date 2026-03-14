@@ -125,6 +125,35 @@ Claude: Branch fix/empty-cart-500 has 1 commit:
   All 47 tests passing.
 ```
 
+### Quick dispatch with `/queue`
+
+For fire-and-forget task dispatch, create a custom skill that wraps the queue-add-and-dispatch workflow into a slash command. Put it at `~/.claude/skills/queue/SKILL.md`:
+
+```markdown
+# /queue — Quick task dispatch
+
+When the user runs `/queue <description>`, do the following:
+
+1. Read ~/.claude/work-queue.json (create it as [] if missing)
+2. Determine the next ID by finding the highest existing ID and incrementing
+3. Infer a short title and agent_type from the description
+4. Add the task with status "in-progress" and the user's current project path
+5. Immediately dispatch an agent in a background worktree to work on it
+6. Report back with the task ID and dispatched agent in one line
+
+Do NOT ask for confirmation. This is a fire-and-forget command.
+The description after /queue is the full task specification.
+```
+
+Then use it from any session:
+
+```
+You: /queue fix the login redirect bug in auth
+Claude: Dispatched #004 → debugger: "Fix login redirect loop"
+```
+
+The skill handles ID assignment, queue writes, and agent dispatch in a single step — no back-and-forth required.
+
 ### Merging work
 
 Ask the dispatcher to merge completed branches. It handles the git operations.
@@ -135,6 +164,73 @@ Claude: Merged fix/empty-cart-500 into main (fast-forward)
         Merged fix/stale-options-cache into main (clean merge)
         Both branches cleaned up. Queue updated to reflect merge.
 ```
+
+## Team mode
+
+claude-swarm supports native Claude Code teams for coordinated multi-agent work. In team mode, multiple named agents run concurrently, can message each other directly, and share a task board for tracking progress.
+
+### What it is
+
+A team is a set of agents that collaborate on a single objective. Unlike independent dispatch (where each agent works alone in its own worktree), team agents can:
+
+- **Send messages to each other** using `SendMessage` — e.g., a backend agent tells a frontend agent "the API contract is `GET /api/search?q=term` returning `{ results: [...] }`"
+- **Share a task board** using `TaskCreate` and `TaskUpdate` — all agents see the same list of subtasks and can claim, update, or mark them done
+- **Work on different codebases simultaneously** — one agent in the API repo, another in the web repo, coordinating through messages
+
+### When to use teams vs single-agent dispatch
+
+| Use single-agent dispatch when... | Use team mode when... |
+|---|---|
+| The task is self-contained (one repo, one concern) | The task spans multiple codebases |
+| No coordination is needed — just "go fix this" | Agents need to agree on interfaces or contracts |
+| You want fast, independent bug fixes or features | Subtasks have dependencies (backend must finish before frontend) |
+| Cost matters — teams use more tokens | Real-time coordination produces better results than async handoff |
+
+### How it works
+
+Team mode requires the experimental agent teams flag:
+
+```
+CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
+```
+
+The plugin's SessionStart hook auto-enables this flag in `~/.claude/settings.json` on every launch. If you see a message about it being enabled for the first time, restart Claude Code for it to take effect.
+
+### Team tasks in the queue
+
+A team task in `~/.claude/work-queue.json` looks like this. Note there is no `agent_type` — the dispatcher picks the right agents dynamically based on available specialists and task requirements:
+
+```json
+{
+  "id": "015",
+  "title": "Add real-time notifications",
+  "description": "WebSocket push notifications when alerts fire. Backend emits events, frontend shows toast.",
+  "dispatch": "team",
+  "team": [
+    {
+      "role": "backend",
+      "project": "/home/user/code/my-api",
+      "description": "Add WebSocket endpoint at /ws/alerts. Emit JSON { type, message, severity } when AlertEngine fires."
+    },
+    {
+      "role": "frontend",
+      "project": "/home/user/code/my-web",
+      "description": "Connect to /ws/alerts on login. Show toast notifications with severity-based styling."
+    }
+  ],
+  "status": "ready",
+  "priority": 1
+}
+```
+
+### Agent coordination within a team
+
+Once a team is running, agents coordinate using two mechanisms:
+
+- **`SendMessage`** — direct agent-to-agent communication. Use this when one agent needs to tell another about an API contract, a shared type definition, or a blocking issue.
+- **`TaskCreate` / `TaskUpdate`** — the shared task board. Agents break the work into subtasks, claim them, and mark them done. All team members see the same board, so the dispatcher (and other agents) always know what's in progress and what's blocked.
+
+The dispatcher does not micromanage. It composes the team, sets the objective, and lets agents self-organize through messages and the task board.
 
 ## Work queue
 
