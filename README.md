@@ -51,6 +51,7 @@ The plugin auto-enables the `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` flag in `~/.c
 - **[Work Queue](docs/work-queue.md)** -- full queue format spec, all fields, status lifecycle, CLI reference
 - **[Team Mode](docs/team-mode.md)** -- when to use teams, independent vs coordinated teams, cross-codebase patterns
 - **[Agent Composition](docs/agent-composition.md)** -- how agents are selected, model tier considerations, writing good tasks
+- **[Dashboard](docs/dashboard.md)** -- local web UI for real-time queue monitoring and task submission
 
 ## Development
 
