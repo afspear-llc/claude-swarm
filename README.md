@@ -18,7 +18,7 @@ Uninstall with `claude plugin uninstall claude-swarm`. Your work queue is never 
 Describe what you want. The dispatcher picks the right agent and launches it in the background.
 
 ```
-You: "The options chain endpoint is returning stale data"
+You: "/queue The options chain endpoint is returning stale data"
 Claude: Dispatched #004 → debugger: "Fix stale options chain cache TTL"
 
 ... (agent works in background worktree) ...
