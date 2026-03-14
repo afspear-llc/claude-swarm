@@ -29,7 +29,7 @@ Claude: #004 done — reduced cache TTL from 24h to 15min, branch: fix/stale-opt
 For cross-codebase work, it composes a team automatically:
 
 ```
-You: "Add a search feature — backend indexes posts, frontend shows results"
+You: "/queue Add a search feature — backend indexes posts, frontend shows results"
 Claude: Dispatched #005 as team:
   backend → java-specialist: "Add GET /api/search endpoint"
   frontend → angular-specialist: "Add SearchComponent with results"
