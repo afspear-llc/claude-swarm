@@ -1,0 +1,45 @@
+[
+  {
+    "id": "001",
+    "title": "Fix authentication timeout bug",
+    "description": "Users are getting logged out after 5 minutes. The JWT refresh logic in AuthService isn't triggering. Check the token expiry handling and fix the refresh interval. Acceptance criteria: users stay logged in for at least 1 hour of activity, refresh token is called before expiry, add unit tests for the refresh logic.",
+    "dispatch": "agent",
+    "agent_type": "debugger",
+    "project": "/home/user/code/my-app",
+    "status": "ready",
+    "priority": 1
+  },
+  {
+    "id": "002",
+    "title": "Add user profile page",
+    "description": "New page showing user settings, avatar, and preferences. Backend needs a GET/PUT /api/profile endpoint. Frontend needs a new ProfileComponent with form.",
+    "dispatch": "team",
+    "team": [
+      {
+        "role": "backend",
+        "agent_type": "backend-architect",
+        "project": "/home/user/code/my-api",
+        "description": "Add GET /api/profile and PUT /api/profile endpoints. Return/accept: { name: string, email: string, avatar_url: string, preferences: { theme: 'light' | 'dark', notifications: boolean } }. Add ProfileService with validation. Unit tests for service and controller. Ensure auth middleware protects both endpoints."
+      },
+      {
+        "role": "frontend",
+        "agent_type": "frontend-developer",
+        "project": "/home/user/code/my-web",
+        "description": "Add ProfileComponent at /profile route. Call GET /api/profile on load, PUT /api/profile on save. Form fields: name (text), email (text, readonly), avatar (file upload), theme (toggle), notifications (toggle). Use existing design system components. API contract: { name: string, email: string, avatar_url: string, preferences: { theme: 'light' | 'dark', notifications: boolean } }. Add component tests."
+      }
+    ],
+    "status": "ready",
+    "priority": 2
+  },
+  {
+    "id": "003",
+    "title": "Improve dashboard load time",
+    "description": "Dashboard takes 4+ seconds to load. Profile the API calls, add caching where appropriate, and lazy-load non-critical widgets. Target: under 1 second initial render.",
+    "dispatch": "agent",
+    "agent_type": "performance-engineer",
+    "project": "/home/user/code/my-app",
+    "status": "done",
+    "priority": 3,
+    "branch": "fix/dashboard-perf"
+  }
+]
