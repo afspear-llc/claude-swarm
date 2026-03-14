@@ -112,6 +112,30 @@ The dispatcher decides based on task complexity:
 
 The work queue lives at `~/.claude/work-queue.json`. It is a JSON array of task objects. This file persists across sessions -- it is the cross-session source of truth that native teams don't provide.
 
+### Queue CLI
+
+**IMPORTANT:** Always use the `queue.sh` script (via Bash tool) to read and write the queue. Never use the Write or Edit tools on `work-queue.json` directly.
+
+The script lives at the skill's install location. Find it with:
+```bash
+QUEUE_SH="$(dirname "$(find ~/.claude/skills -name queue.sh -path '*/claude-swarm/*' 2>/dev/null | head -1)")/queue.sh"
+```
+
+Commands:
+```bash
+$QUEUE_SH list                    # All tasks (tab-separated: id, status, title)
+$QUEUE_SH list ready              # Filter by status
+$QUEUE_SH add "title" "desc" "/project/path"              # Add agent task
+$QUEUE_SH add "title" "desc" "/project/path" agent 1      # With dispatch mode + priority
+$QUEUE_SH add-team "title" "desc" '[{"role":"backend","project":"/path","description":"..."}]'
+$QUEUE_SH update 001 status in-progress
+$QUEUE_SH update 001 status done
+$QUEUE_SH update 001 branch fix/my-branch
+$QUEUE_SH update 001 error "Build failed"
+$QUEUE_SH remove 001
+$QUEUE_SH next-id
+```
+
 ### Task Format
 
 ```json
@@ -182,11 +206,12 @@ The work queue lives at `~/.claude/work-queue.json`. It is a JSON array of task 
 On every session start:
 
 1. **Verify the agent teams flag is set.** The SessionStart hook script (`check-queue.sh`) automatically ensures `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` is set to `"1"` in `~/.claude/settings.json`. This flag is required for native team tools (TeamCreate, SendMessage, TaskCreate). If the hook reports that it enabled the flag, note to the user that it was auto-enabled and a Claude Code restart may be needed for it to take effect.
-2. **Read `~/.claude/work-queue.json`** (if it exists)
-3. **For each item with `"status": "ready"`**, dispatch immediately
-4. **Dispatch ALL ready items concurrently** -- do not serialize them
-5. **For items with `"status": "in-progress"`**, check if agents are still running and report status to the user
-6. **Never leave ready items sitting** -- dispatch is the first thing you do
+2. **Locate the queue script:** `QUEUE_SH="$(dirname "$(find ~/.claude/skills -name queue.sh -path '*/claude-swarm/*' 2>/dev/null | head -1)")/queue.sh"`
+3. **Check for ready items:** `$QUEUE_SH list ready`
+4. **For each ready item**, dispatch immediately
+5. **Dispatch ALL ready items concurrently** -- do not serialize them
+6. **Check in-progress items:** `$QUEUE_SH list in-progress` -- report status to the user
+7. **Never leave ready items sitting** -- dispatch is the first thing you do
 
 If the queue file doesn't exist, there's nothing to dispatch. Proceed normally.
 
@@ -198,7 +223,7 @@ When dispatching a task:
 
 1. **Read `~/.claude/agents/`** to discover available specialists (if you haven't already this session)
 2. **Match the task to the best available agent(s)** using the selection principles above
-3. **Set the task's status to `"in-progress"`** in the queue file immediately
+3. **Mark in-progress:** `$QUEUE_SH update <id> status in-progress`
 4. **Spawn the agent(s)** using the appropriate dispatch mode
 5. **Include full context** in the agent's instructions: task description, acceptance criteria, project path, relevant files
 
@@ -224,15 +249,13 @@ When a team spans multiple projects (e.g., backend API + frontend app):
 
 When an agent or team finishes:
 
-1. **Set the task's status to `"done"`** in the queue file
-2. **Record the branch name or PR URL** in the task's `"branch"` field
-3. **Report results to the user** with a brief summary of what was accomplished
+1. `$QUEUE_SH update <id> status done` and `$QUEUE_SH update <id> branch <branch-name>`
+2. **Report results to the user** with a brief summary of what was accomplished
 
 When an agent fails:
 
-1. **Set the task's status to `"failed"`** in the queue file
-2. **Add an `"error"` field** with a brief explanation
-3. **Report the failure to the user** and discuss next steps
+1. `$QUEUE_SH update <id> status failed` and `$QUEUE_SH update <id> error "explanation"`
+2. **Report the failure to the user** and discuss next steps
 
 ---
 

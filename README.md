@@ -131,15 +131,32 @@ Requires the experimental flag `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`. The plu
 
 ## Work queue
 
-The queue lives at `~/.claude/work-queue.json`. Edit it directly or let Claude manage it.
+The queue lives at `~/.claude/work-queue.json`. The dispatcher manages it through `scripts/queue.sh`, a jq-based CLI that keeps queue updates compact (one-line confirmations instead of dumping the full JSON file).
 
-### Single agent task
+### Queue CLI
+
+The dispatcher uses this automatically. You can also run it directly:
+
+```bash
+# From the plugin directory
+./scripts/queue.sh list                     # All tasks (id, status, title)
+./scripts/queue.sh list ready               # Filter by status
+./scripts/queue.sh add "Title" "Description" "/project/path"
+./scripts/queue.sh add-team "Title" "Desc" '[{"role":"be","project":"/path","description":"..."}]'
+./scripts/queue.sh update 001 status done
+./scripts/queue.sh update 001 branch fix/my-branch
+./scripts/queue.sh remove 001
+```
+
+Requires `jq`. Output is always a one-liner: `✓ #001 status → done`.
+
+### Task format
 
 ```json
 {
   "id": "001",
   "title": "Fix login redirect loop",
-  "description": "After OAuth callback, users hit an infinite redirect. Check the callback handler and session storage logic.",
+  "description": "After OAuth callback, users hit an infinite redirect.",
   "dispatch": "agent",
   "project": "/home/user/code/my-app",
   "status": "ready",
@@ -147,7 +164,7 @@ The queue lives at `~/.claude/work-queue.json`. Edit it directly or let Claude m
 }
 ```
 
-### Team task
+For team tasks, replace `project` with a `team` array:
 
 ```json
 {
@@ -191,7 +208,8 @@ claude-swarm/
 ├── hooks/
 │   └── hooks.json            SessionStart hook to auto-check the queue
 ├── scripts/
-│   └── check-queue.sh        Hook script that detects ready items
+│   ├── check-queue.sh        Hook script that detects ready items
+│   └── queue.sh              CLI for queue operations (add, update, remove, list)
 ├── examples/
 │   └── work-queue.json       Example work queue with sample tasks
 ├── LICENSE
@@ -201,6 +219,7 @@ claude-swarm/
 ## Prerequisites
 
 - Claude Code installed
+- `jq` installed (used by `queue.sh` for JSON manipulation)
 - **Agent teams flag** -- the plugin auto-enables `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in `~/.claude/settings.json` on each launch
 - Optionally, agent definitions in `~/.claude/agents/` (works without them using general-purpose dispatch)
 
